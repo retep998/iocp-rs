@@ -1,72 +1,80 @@
 
+use c::HANDLE;
+use libc;
+use libc::{c_int, pid_t};
+use std::c_str::CString;
+use std::ptr::mut_null;
+use std::rt::rtio;
+use std::rt::rtio::{IoError, IoResult};
+
 mod tty;
 
-struct Factory {
-    iocp: c::HANDLE,
+pub struct Factory {
+    iocp: HANDLE,
 }
 
 impl Factory {
-    fn new() -> Factory {
+    pub fn new() -> Factory {
         Factory {
             iocp: mut_null(),
         }
     }
 }
 
-impl IoFactory for Factory {
+impl rtio::IoFactory for Factory {
     fn tcp_connect(
         &mut self,
-        addr: SocketAddr,
+        addr: rtio::SocketAddr,
         timeout: Option<u64>
-    ) -> IoResult<Box<RtioTcpStream + Send>> {
+    ) -> IoResult<Box<rtio::RtioTcpStream + Send>> {
         iocpabort!("tcp_connect")
     }
     fn tcp_bind(
         &mut self,
-        addr: SocketAddr
-    ) -> IoResult<Box<RtioTcpListener + Send>> {
+        addr: rtio::SocketAddr
+    ) -> IoResult<Box<rtio::RtioTcpListener + Send>> {
         iocpabort!("tcp_bind")
     }
     fn udp_bind(
         &mut self,
-        addr: SocketAddr
-    ) -> IoResult<Box<RtioUdpSocket + Send>> {
+        addr: rtio::SocketAddr
+    ) -> IoResult<Box<rtio::RtioUdpSocket + Send>> {
         iocpabort!("udp_bind")
     }
     fn unix_bind(
         &mut self,
         path: &CString
-    ) -> IoResult<Box<RtioUnixListener + Send>> {
+    ) -> IoResult<Box<rtio::RtioUnixListener + Send>> {
         iocpabort!("unix_bind")
     }
     fn unix_connect(
         &mut self,
         path: &CString,
         timeout: Option<u64>
-    ) -> IoResult<Box<RtioPipe + Send>> {
+    ) -> IoResult<Box<rtio::RtioPipe + Send>> {
         iocpabort!("unix_connect")
     }
     fn get_host_addresses(
         &mut self,
         host: Option<&str>,
         servname: Option<&str>,
-        hint: Option<AddrinfoHint>
-    ) -> IoResult<Vec<AddrinfoInfo>> {
+        hint: Option<rtio::AddrinfoHint>
+    ) -> IoResult<Vec<rtio::AddrinfoInfo>> {
         iocpabort!("get_host_addresses")
     }
     fn fs_from_raw_fd(
         &mut self,
         fd: c_int,
-        close: CloseBehavior
-    ) -> Box<RtioFileStream + Send> {
+        close: rtio::CloseBehavior
+    ) -> Box<rtio::RtioFileStream + Send> {
         iocpabort!("fs_from_raw_fd")
     }
     fn fs_open(
         &mut self,
         path: &CString,
-        fm: FileMode,
-        fa: FileAccess
-    ) -> IoResult<Box<RtioFileStream + Send>> {
+        fm: rtio::FileMode,
+        fa: rtio::FileAccess
+    ) -> IoResult<Box<rtio::RtioFileStream + Send>> {
         iocpabort!("fs_open")
     }
     fn fs_unlink(
@@ -78,7 +86,7 @@ impl IoFactory for Factory {
     fn fs_stat(
         &mut self,
         path: &CString
-    ) -> IoResult<FileStat> {
+    ) -> IoResult<rtio::FileStat> {
         iocpabort!("fs_stat")
     }
     fn fs_mkdir(
@@ -118,7 +126,7 @@ impl IoFactory for Factory {
     fn fs_lstat(
         &mut self,
         path: &CString
-    ) -> IoResult<FileStat> {
+    ) -> IoResult<rtio::FileStat> {
         iocpabort!("fs_lstat")
     }
     fn fs_chown(
@@ -159,13 +167,13 @@ impl IoFactory for Factory {
     }
     fn timer_init(
         &mut self
-    ) -> IoResult<Box<RtioTimer + Send>> {
+    ) -> IoResult<Box<rtio::RtioTimer + Send>> {
         iocpabort!("timer_init")
     }
     fn spawn(
         &mut self,
-        cfg: ProcessConfig
-    ) -> IoResult<(Box<RtioProcess + Send>, Vec<Option<Box<RtioPipe + Send>>>)> {
+        cfg: rtio::ProcessConfig
+    ) -> IoResult<(Box<rtio::RtioProcess + Send>, Vec<Option<Box<rtio::RtioPipe + Send>>>)> {
         iocpabort!("spawn")
     }
     fn kill(
@@ -178,16 +186,16 @@ impl IoFactory for Factory {
     fn pipe_open(
         &mut self,
         fd: c_int
-    ) -> IoResult<Box<RtioPipe + Send>> {
+    ) -> IoResult<Box<rtio::RtioPipe + Send>> {
         iocpabort!("pipe_open")
     }
     fn tty_open(
         &mut self,
         fd: c_int,
         readable: bool
-    ) -> IoResult<Box<RtioTTY + Send>> {
+    ) -> IoResult<Box<rtio::RtioTTY + Send>> {
         if tty::is_tty(fd) {
-            Ok(box tty::TTY::new(fd) as Box<RtioTTY + Send>)
+            Ok(box tty::TTY::new(fd) as Box<rtio::RtioTTY + Send>)
         } else {
             Err(IoError {
                 code: libc::ERROR_INVALID_HANDLE as uint,
@@ -199,8 +207,8 @@ impl IoFactory for Factory {
     fn signal(
         &mut self,
         signal: int,
-        cb: Box<Callback + Send>
-    ) -> IoResult<Box<RtioSignal + Send>> {
+        cb: Box<rtio::Callback + Send>
+    ) -> IoResult<Box<rtio::RtioSignal + Send>> {
         iocpabort!("signal")
     }
 }

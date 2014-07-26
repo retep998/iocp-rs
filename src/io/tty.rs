@@ -36,6 +36,8 @@ use std::ptr;
 use std::rt::rtio::{IoResult, IoError, RtioTTY};
 use std::str::{from_utf16, from_utf8};
 
+use {last_error, unimpl};
+
 fn invalid_encoding() -> IoError {
     IoError {
         code: ERROR_ILLEGAL_CHARACTER as uint,
@@ -47,8 +49,10 @@ fn invalid_encoding() -> IoError {
 pub fn is_tty(fd: c_int) -> bool {
     let mut out: DWORD = 0;
     // If this function doesn't fail then fd is a TTY
-    match unsafe { GetConsoleMode(get_osfhandle(fd) as HANDLE,
-                                  &mut out as LPDWORD) } {
+    match unsafe { GetConsoleMode(
+        get_osfhandle(fd) as HANDLE,
+        &mut out as LPDWORD,
+    ) } {
         0 => false,
         _ => true,
     }
@@ -92,16 +96,18 @@ impl RtioTTY for TTY {
         if self.utf8.eof() {
             let mut utf16 = Vec::from_elem(0x1000, 0u16);
             let mut num: DWORD = 0;
-            match unsafe { ReadConsoleW(self.handle,
-                                         utf16.as_mut_ptr() as LPVOID,
-                                         utf16.len() as u32,
-                                         &mut num as LPDWORD,
-                                         ptr::mut_null()) } {
-                0 => return Err(super::last_error()),
+            match unsafe { ReadConsoleW(
+                self.handle,
+                utf16.as_mut_ptr() as LPVOID,
+                utf16.len() as u32,
+                &mut num as LPDWORD,
+                ptr::mut_null(),
+            ) } {
+                0 => return Err(last_error()),
                 _ => (),
             };
             utf16.truncate(num as uint);
-            let utf8 = match from_utf16(utf16.as_slice()) {
+            let utf8 = match String::from_utf16(utf16.as_slice()) {
                 Some(utf8) => utf8.into_bytes(),
                 None => return Err(invalid_encoding()),
             };
@@ -113,16 +119,18 @@ impl RtioTTY for TTY {
 
     fn write(&mut self, buf: &[u8]) -> IoResult<()> {
         let utf16 = match from_utf8(buf) {
-            Some(utf8) => utf8.to_utf16(),
+            Some(utf8) => utf8.utf16_units().collect::<Vec<u16>>(),
             None => return Err(invalid_encoding()),
         };
         let mut num: DWORD = 0;
-        match unsafe { WriteConsoleW(self.handle,
-                                     utf16.as_ptr() as LPCVOID,
-                                     utf16.len() as u32,
-                                     &mut num as LPDWORD,
-                                     ptr::mut_null()) } {
-            0 => Err(super::last_error()),
+        match unsafe { WriteConsoleW(
+            self.handle,
+            utf16.as_ptr() as LPCVOID,
+            utf16.len() as u32,
+            &mut num as LPDWORD,
+            ptr::mut_null(),
+        ) } {
+            0 => Err(last_error()),
             _ => Ok(()),
         }
     }
@@ -130,14 +138,19 @@ impl RtioTTY for TTY {
     fn set_raw(&mut self, raw: bool) -> IoResult<()> {
         // FIXME
         // Somebody needs to decide on which of these flags we want
-        match unsafe { SetConsoleMode(self.handle,
+        match unsafe { SetConsoleMode(
+            self.handle,
             match raw {
                 true => 0,
-                false => ENABLE_ECHO_INPUT | ENABLE_EXTENDED_FLAGS |
-                         ENABLE_INSERT_MODE | ENABLE_LINE_INPUT |
-                         ENABLE_PROCESSED_INPUT | ENABLE_QUICK_EDIT_MODE,
-            }) } {
-            0 => Err(super::last_error()),
+                false => ENABLE_ECHO_INPUT |
+                         ENABLE_EXTENDED_FLAGS |
+                         ENABLE_INSERT_MODE |
+                         ENABLE_LINE_INPUT |
+                         ENABLE_PROCESSED_INPUT |
+                         ENABLE_QUICK_EDIT_MODE,
+            },
+        ) } {
+            0 => Err(last_error()),
             _ => Ok(()),
         }
     }
@@ -148,7 +161,7 @@ impl RtioTTY for TTY {
         // Make a CONSOLE_SCREEN_BUFFER_INFO
         // Call GetConsoleScreenBufferInfo
         // Maybe call GetLargestConsoleWindowSize instead?
-        Err(super::unimpl())
+        Err(unimpl())
     }
 
     // Let us magically declare this as a TTY

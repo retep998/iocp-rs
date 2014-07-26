@@ -5,10 +5,9 @@ use std::rt::rtio;
 use std::sync::Arc;
 use std::sync::atomics::{AtomicBool, SeqCst};
 
-use c;
 use io;
 
-struct Loop {
+pub struct Loop {
     factory: io::Factory,
     work: Vec<proc(): Send>,
     remotes: Vec<(uint, Box<rtio::Callback + Send>)>,
@@ -19,7 +18,7 @@ struct Loop {
 }
 
 impl Loop {
-    fn new() -> Loop {
+    pub fn new() -> Loop {
         Loop {
             factory: io::Factory::new(),
             work: vec![],
