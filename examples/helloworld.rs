@@ -8,5 +8,9 @@ fn start(argc: int, argv: *const *const u8) -> int {
 }
 
 fn main() {
-    println!("Hello World!");
+    println!("\
+        ╔══════╗\n\
+        ║Привет║\n\
+        ╚══════╝\
+    ");
 }
