@@ -2,6 +2,7 @@
 #![feature(macro_rules)]
 #![allow(unused_variable)]
 
+extern crate sync;
 extern crate libc;
 extern crate native;
 

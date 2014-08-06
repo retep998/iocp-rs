@@ -28,19 +28,21 @@ use c::{ERROR_ILLEGAL_CHARACTER};
 use c::{ENABLE_ECHO_INPUT, ENABLE_EXTENDED_FLAGS};
 use c::{ENABLE_INSERT_MODE, ENABLE_LINE_INPUT};
 use c::{ENABLE_PROCESSED_INPUT, ENABLE_QUICK_EDIT_MODE};
-use libc::{c_int, HANDLE, LPDWORD, DWORD, LPVOID};
+use c::{HANDLE};
+use libc::{c_int, LPDWORD, DWORD, LPVOID};
 use libc::{get_osfhandle, CloseHandle};
 use libc::types::os::arch::extra::LPCVOID;
 use std::io::MemReader;
 use std::ptr;
-use std::rt::rtio::{IoResult, IoError, RtioTTY};
+use std::rt::rtio;
+use std::rt::rtio::{IoResult, IoError};
 use std::str::{from_utf16, from_utf8};
 
 use {last_error, unimpl};
 
 fn invalid_encoding() -> IoError {
     IoError {
-        code: ERROR_ILLEGAL_CHARACTER as uint,
+        code: ERROR_ILLEGAL_CHARACTER,
         extra: 0,
         detail: Some("text was not valid unicode".to_string()),
     }
@@ -90,7 +92,7 @@ impl Drop for TTY {
     }
 }
 
-impl RtioTTY for TTY {
+impl rtio::RtioTTY for TTY {
     fn read(&mut self, buf: &mut [u8]) -> IoResult<uint> {
         // Read more if the buffer is empty
         if self.utf8.eof() {

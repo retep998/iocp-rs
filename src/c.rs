@@ -10,10 +10,12 @@
 
 use libc;
 
+pub type BOOL = libc::c_int;
 pub type HANDLE = *mut VOID;
 pub type VOID = libc::c_void;
 
-pub static ERROR_ILLEGAL_CHARACTER: libc::c_int = 582;
+pub static ERROR_ILLEGAL_CHARACTER: uint = 582;
+pub static ERROR_INVALID_HANDLE: uint = 6;
 pub static ENABLE_ECHO_INPUT: libc::DWORD = 0x4;
 pub static ENABLE_EXTENDED_FLAGS: libc::DWORD = 0x80;
 pub static ENABLE_INSERT_MODE: libc::DWORD = 0x20;
@@ -22,27 +24,30 @@ pub static ENABLE_PROCESSED_INPUT: libc::DWORD = 0x1;
 pub static ENABLE_QUICK_EDIT_MODE: libc::DWORD = 0x40;
 
 extern "system" {
+    pub fn CloseHandle(
+        hObject: HANDLE,
+    ) -> BOOL;
     // FIXME - pInputControl should be PCONSOLE_READCONSOLE_CONTROL
     pub fn ReadConsoleW(
-        hConsoleInput: libc::HANDLE,
+        hConsoleInput: HANDLE,
         lpBuffer: libc::LPVOID,
         nNumberOfCharsToRead: libc::DWORD,
         lpNumberOfCharsRead: libc::LPDWORD,
-        pInputControl: libc::LPVOID
-    ) -> libc::BOOL;
+        pInputControl: libc::LPVOID,
+    ) -> BOOL;
     pub fn WriteConsoleW(
-        hConsoleOutput: libc::HANDLE,
+        hConsoleOutput: HANDLE,
         lpBuffer: libc::types::os::arch::extra::LPCVOID,
         nNumberOfCharsToWrite: libc::DWORD,
         lpNumberOfCharsWritten: libc::LPDWORD,
-        lpReserved: libc::LPVOID
-    ) -> libc::BOOL;
+        lpReserved: libc::LPVOID,
+    ) -> BOOL;
     pub fn GetConsoleMode(
-        hConsoleHandle: libc::HANDLE,
-        lpMode: libc::LPDWORD
-    ) -> libc::BOOL;
+        hConsoleHandle: HANDLE,
+        lpMode: libc::LPDWORD,
+    ) -> BOOL;
     pub fn SetConsoleMode(
-        hConsoleHandle: libc::HANDLE,
-        lpMode: libc::DWORD
-    ) -> libc::BOOL;
+        hConsoleHandle: HANDLE,
+        lpMode: libc::DWORD,
+    ) -> BOOL;
 }

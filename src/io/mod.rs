@@ -1,22 +1,44 @@
 
-use c::HANDLE;
-use libc;
+use c::{ERROR_INVALID_HANDLE};
+use c::{HANDLE};
 use libc::{c_int, pid_t};
 use std::c_str::CString;
+use std::mem::transmute;
 use std::ptr::mut_null;
 use std::rt::rtio;
 use std::rt::rtio::{IoError, IoResult};
+use std::sync::{Once, ONCE_INIT};
 
 mod tty;
 
+static mut IOCP_INIT: Once = ONCE_INIT;
+static mut IOCP: *mut Iocp = 0 as *mut Iocp;
+
+struct Iocp {
+    handle: HANDLE,
+}
+
+impl Drop for Iocp {
+    fn drop(&mut self) {
+    }
+}
+
 pub struct Factory {
-    iocp: HANDLE,
+    iocp: &'static mut Iocp,
 }
 
 impl Factory {
     pub fn new() -> Factory {
-        Factory {
-            iocp: mut_null(),
+        unsafe {
+            IOCP_INIT.doit(|| {
+                let iocp = box Iocp {
+                    handle: mut_null(),
+                };
+                IOCP = transmute(iocp);
+            });
+            Factory {
+                iocp: &mut *IOCP,
+            }
         }
     }
 }
@@ -198,7 +220,7 @@ impl rtio::IoFactory for Factory {
             Ok(box tty::TTY::new(fd) as Box<rtio::RtioTTY + Send>)
         } else {
             Err(IoError {
-                code: libc::ERROR_INVALID_HANDLE as uint,
+                code: ERROR_INVALID_HANDLE as uint,
                 extra: 0,
                 detail: None,
             })
