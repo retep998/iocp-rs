@@ -8,6 +8,6 @@ fn start(argc: int, argv: *const *const u8) -> int {
 }
 
 #[test]
-fn write_file() {
+fn do_nothing() {
     ()
 }
