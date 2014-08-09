@@ -11,3 +11,10 @@ fn start(argc: int, argv: *const *const u8) -> int {
 fn do_nothing() {
     ()
 }
+
+#[test]
+fn print_something() {
+    use std::io::stdio::stdout;
+    let mut cout = stdout();
+    cout.write_line("Привет, мир!").unwrap();
+}
